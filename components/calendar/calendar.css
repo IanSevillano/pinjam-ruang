@@ -1,0 +1,165 @@
+
+/* components/calendar/calendar.css */
+/* Calendar container */
+.calendar-container {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow p-4;
+}
+
+/* Calendar title */
+.calendar-title {
+  @apply text-2xl font-bold mb-4 text-gray-900 dark:text-white;
+}
+
+/* FullCalendar custom styles */
+.fc .fc-daygrid-day.fc-day-today {
+  @apply bg-blue-50 dark:bg-blue-900/20;
+}
+
+.fc .fc-today-button {
+  @apply bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-700 dark:hover:bg-blue-800;
+}
+
+.fc .fc-button {
+  @apply transition-colors duration-200;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  @apply border-red-500 dark:border-red-400 border-2;
+}
+
+
+
+
+
+
+/* components/calendar/Calendar.css */
+.fc .fc-scrollgrid {
+  width: 100% !important;
+}
+
+.fc .fc-col-header-cell, 
+.fc .fc-daygrid-day {
+  width: calc(100% / 7) !important;
+  min-width: 0 !important;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc .fc-view-harness {
+  transition: width 0.3s ease;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 5rem; /* Sesuaikan sesuai kebutuhan */
+}
+
+
+
+
+
+
+
+/* components/calendar/Calendar.css */
+
+/* Perbaikan untuk kalender tanpa sidebar */
+.fc .fc-daygrid-body {
+  width: 100% !important;
+}
+
+/* Penanda hari yang lebih jelas */
+.fc .fc-daygrid-day.fc-day-today {
+  @apply bg-blue-100 dark:bg-blue-900/40; /* Lebih kontras */
+  border: 2px solid hsl(var(--primary)); /* Tambah border */
+}
+
+/* Header kolom yang lebih konsisten */
+.fc .fc-col-header-cell {
+  @apply bg-gray-50 dark:bg-gray-700;
+}
+
+/* Perbaikan spacing */
+.fc .fc-scrollgrid-section-body table {
+  width: 100% !important;
+}
+
+/* Perbaikan untuk tampilan kompak */
+.fc .fc-view-harness {
+  min-height: 400px;
+}
+
+
+
+
+/* FullCalendar dark mode adjustments */
+.fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-neutral-bg-color: hsl(var(--background));
+  --fc-list-event-hover-bg-color: hsl(var(--accent));
+}
+
+
+.fc .fc-button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+}
+
+.fc .fc-button:hover {
+  background-color: hsl(var(--primary)/0.9);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: hsl(var(--primary)/0.8);
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: hsl(var(--primary)/0.5);
+}
+
+.fc .fc-scrollgrid {
+  table-layout: fixed !important;
+}
+
+
+.fc-theme-standard 
+.fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: hsl(var(--border));
+}
+
+.fc .fc-daygrid-day-frame,
+.fc .fc-timegrid-col-frame {
+  background-color: hsl(var(--background));
+}
+
+.fc .fc-daygrid-day-top {
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-timegrid-slot-label-cushion {
+  color: hsl(var(--foreground));
+}
+
+
+.fc .fc-event-title {
+  color: black; /* default untuk mode terang */
+}
+
+.dark .fc .fc-event-title {
+  color: white; /* khusus mode gelap */
+}
+
+
+
+

@@ -1,103 +1,232 @@
-import Image from "next/image";
+//app/page.tsx
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { EventInput } from "@fullcalendar/core";
+import SidebarPublic from "@/components/layout/SidebarPublic";
+import Calendar from "@/components/calendar/Calendar";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [events, setEvents] = useState<EventInput[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const calendarRef = useRef<any>(null);
+  const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      }
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  useEffect(() => {
+    async function loadEvents() {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const [peminjamanRes, holidayRes] = await Promise.all([
+          fetch("/api/public/peminjaman").then((res) => {
+            if (!res.ok) throw new Error("Failed to fetch peminjaman");
+            return res.json();
+          }),
+          fetch("https://date.nager.at/api/v3/PublicHolidays/2025/ID").then((res) => {
+            if (!res.ok) throw new Error("Failed to fetch holidays");
+            return res.json();
+          }),
+        ]);
+
+        console.log("Peminjaman data:", peminjamanRes); // Debug log
+
+        let peminjamanEvents: EventInput[] = [];
+        if (peminjamanRes.peminjaman && Array.isArray(peminjamanRes.peminjaman)) {
+          peminjamanEvents = peminjamanRes.peminjaman.map((item: any) => ({
+            id: item.id.toString(),
+            title: `${item.nama_kegiatan} - ${item.nama_ruangan}`,
+            start: item.waktu_peminjaman_mulai,
+            end: item.waktu_peminjaman_selesai,
+            color: getStatusColor(item.status_peminjaman),
+            textColor: "#ffffff",
+            extendedProps: {
+              type: "peminjaman",
+              nama_user: item.nama_user || "Tidak diketahui",
+              nama_ruangan: item.nama_ruangan,
+              nama_gedung: item.nama_gedung,
+              status_peminjaman: item.status_peminjaman,
+              catatan: item.status_peminjaman === "selesai" ? item.catatan || "Tidak ada catatan" : null,
+            },
+          }));
+        }
+
+        const holidayEvents: EventInput[] = holidayRes.map((holiday: any) => ({
+          title: `Libur Nasional: ${holiday.localName}`,
+          start: holiday.date,
+          end: holiday.date,
+          color: "#ef4444",
+          textColor: "white",
+          extendedProps: { type: "holiday" },
+        }));
+
+        setEvents([...peminjamanEvents, ...holidayEvents]);
+      } catch (err: any) {
+        console.error("Error loading events:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadEvents();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "selesai": return "#10b981";
+      case "disetujui": return "#3b82f6";
+      case "menunggu persetujuan": return "#f59e0b";
+      case "ditolak": return "#ef4444";
+      case "dibatalkan": return "#ef4444";
+      default: return "#3788d8";
+    }
+  };
+
+  const handleEventClick = (clickInfo: any) => {
+    if (clickInfo.event.extendedProps.type === "holiday") return;
+    setSelectedEvent(clickInfo.event);
+  };
+
+  const handleDateClick = (dateStr: string) => {
+    router.push("/login");
+  };
+
+  const closeModal = () => {
+    setSelectedEvent(null);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+    setTimeout(() => {
+      if (calendarRef.current) {
+        calendarRef.current.getApi().updateSize();
+      }
+    }, 350);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <SidebarPublic 
+          collapsed={sidebarCollapsed} 
+          setCollapsed={setSidebarCollapsed} 
+        />
+        <main className={`flex-1 p-4 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-0' : 'md:ml-64'} mt-16 md:mt-0`}>
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen">
+        <SidebarPublic 
+          collapsed={sidebarCollapsed} 
+          setCollapsed={setSidebarCollapsed} 
+        />
+        <main className={`flex-1 p-4 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-0' : 'md:ml-64'} mt-16 md:mt-0`}>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen">
+      <SidebarPublic 
+        collapsed={sidebarCollapsed} 
+        setCollapsed={setSidebarCollapsed} 
+      />
+      
+      <main className={`flex-1 p-4 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-0' : 'md:ml-64'} mt-16 md:mt-0`}>
+        <button 
+          onClick={toggleSidebar}
+          className="md:hidden fixed top-2 left-2 z-30 bg-blue-600 dark:bg-blue-700 text-white p-2 rounded shadow-lg"
+        >
+          {sidebarCollapsed ? '☰' : '✕'}
+        </button>
+
+        <div className="calendar-container w-full overflow-x-auto">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Kalender Peminjaman Ruangan</h1>
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-gray-700 rounded-lg">
+            <p className="text-gray-700 dark:text-gray-300">
+              Klik pada tanggal di kalender untuk memulai peminjaman ruangan. Anda perlu login terlebih dahulu.
+            </p>
+          </div>
+          <Calendar
+            ref={calendarRef}
+            events={events}
+            onDateClick={handleDateClick}
+            onEventClick={handleEventClick}
+          />
         </div>
+
+        {/* Event Detail Modal */}
+        {selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                {selectedEvent.title}
+              </h3>
+              <div className="space-y-2 text-gray-700 dark:text-gray-300">
+                <p><strong>Peminjam:</strong> {selectedEvent.extendedProps.nama_user}</p>
+                <p><strong>Ruangan:</strong> {selectedEvent.extendedProps.nama_ruangan} ({selectedEvent.extendedProps.nama_gedung})</p>
+                <p><strong>Status:</strong> 
+                  <span className={`px-2 py-1 rounded-full text-xs ml-2 ${
+                    selectedEvent.extendedProps.status_peminjaman === 'disetujui' ? 'bg-blue-100 text-blue-800' :
+                    selectedEvent.extendedProps.status_peminjaman === 'selesai' ? 'bg-green-100 text-green-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedEvent.extendedProps.status_peminjaman}
+                  </span>
+                </p>
+                <p><strong>Waktu Mulai:</strong> {new Date(selectedEvent.start).toLocaleString('id-ID')}</p>
+                <p><strong>Waktu Selesai:</strong> {new Date(selectedEvent.end).toLocaleString('id-ID')}</p>
+                {selectedEvent.extendedProps.catatan && (
+                  <p>
+                    <strong>Catatan:</strong> 
+                    <span className="block mt-1 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                      {selectedEvent.extendedProps.catatan}
+                    </span>
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={closeModal}
+                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-2 px-4 rounded"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
