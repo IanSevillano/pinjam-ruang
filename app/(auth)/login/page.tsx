@@ -47,7 +47,7 @@ export default function LoginPage() {
             Daftar di sini
           </Link>
         </p>
-          <div className="mt-2">
+          <div className="mt-2 text-center">
             <Link
               href="/"
               className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium transition-colors"
