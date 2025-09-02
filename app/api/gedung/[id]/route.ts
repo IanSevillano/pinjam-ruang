@@ -2,19 +2,15 @@
 import { NextResponse } from "next/server";
 import { getGedungById, updateGedung, deleteGedung } from "@/models/gedungModel";
 
-// Tipe untuk context
-type Context = {
-  params: {
-    id: string;
-  };
-};
-
 // ============================
 // GET BY ID
 // ============================
-export async function GET(_req: Request, context: Context) {
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const gedungId = Number(context.params.id);
+    const gedungId = Number(params.id);
 
     if (isNaN(gedungId)) {
       return NextResponse.json(
@@ -43,9 +39,12 @@ export async function GET(_req: Request, context: Context) {
 // ============================
 // UPDATE
 // ============================
-export async function PUT(req: Request, context: Context) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const gedungId = Number(context.params.id);
+    const gedungId = Number(params.id);
 
     if (isNaN(gedungId)) {
       return NextResponse.json(
@@ -69,9 +68,12 @@ export async function PUT(req: Request, context: Context) {
 // ============================
 // DELETE
 // ============================
-export async function DELETE(_req: Request, context: Context) {
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const gedungId = Number(context.params.id);
+    const gedungId = Number(params.id);
 
     if (isNaN(gedungId)) {
       return NextResponse.json(
@@ -89,7 +91,6 @@ export async function DELETE(_req: Request, context: Context) {
     );
   }
 }
-
 
 // // app/api/gedung/[id]/route.ts
 // import { NextResponse } from "next/server";
