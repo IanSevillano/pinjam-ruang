@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      domain: "room-booking-lemon.vercel.app",
+      domain: "currentDomain",
       maxAge: 60 * 60 * 24, // 1 hari dalam detik
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tambahkan ini
     });
