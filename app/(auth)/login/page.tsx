@@ -46,6 +46,7 @@ export default function LoginPage() {
           >
             Daftar di sini
           </Link>
+        </p>
           <div className="mt-2">
             <Link
               href="/"
@@ -54,7 +55,6 @@ export default function LoginPage() {
               Kembali
             </Link>
           </div>
-        </p>
       </div>
     </main>
   );
