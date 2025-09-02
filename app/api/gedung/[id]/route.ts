@@ -1,96 +1,41 @@
 // app/api/gedung/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getGedungById, updateGedung, deleteGedung } from "@/models/gedungModel";
+import {
+  getGedungById,
+  updateGedung,
+  deleteGedung,
+} from "../../../../models/gedungModel";
 
-// ============================
-// GET BY ID
-// ============================
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const gedungId = Number(params.id);
-
-    if (isNaN(gedungId)) {
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const gedung = await getGedungById(gedungId);
-    if (!gedung) {
-      return NextResponse.json(
-        { success: false, message: "Gedung tidak ditemukan" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, gedung });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 500 }
-    );
-  }
+interface Params {
+  params: { id: string };
 }
 
-// ============================
-// UPDATE
-// ============================
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const gedungId = Number(params.id);
+export async function GET(request: Request, { params }: Params) {
+  const id = Number(params.id);
+  const gedung = await getGedungById(id);
 
-    if (isNaN(gedungId)) {
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const body = await req.json();
-    await updateGedung(gedungId, body);
-
-    return NextResponse.json({ success: true, id: gedungId });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 400 }
-    );
+  if (!gedung) {
+    return NextResponse.json({ message: "Gedung tidak ditemukan" }, { status: 404 });
   }
+
+  return NextResponse.json(gedung);
 }
 
-// ============================
-// DELETE
-// ============================
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const gedungId = Number(params.id);
+export async function PUT(request: Request, { params }: Params) {
+  const id = Number(params.id);
+  const data = await request.json();
 
-    if (isNaN(gedungId)) {
-      return NextResponse.json(
-        { success: false, message: "ID tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    await deleteGedung(gedungId);
-    return NextResponse.json({ success: true, id: gedungId });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 500 }
-    );
-  }
+  await updateGedung(id, data);
+  return NextResponse.json({ message: "Gedung berhasil diupdate" });
 }
+
+export async function DELETE(request: Request, { params }: Params) {
+  const id = Number(params.id);
+
+  await deleteGedung(id);
+  return NextResponse.json({ message: "Gedung berhasil dihapus" });
+}
+
 
 // // app/api/gedung/[id]/route.ts
 // import { NextResponse } from "next/server";
