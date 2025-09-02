@@ -6,9 +6,15 @@ import {
   deleteGedung,
 } from "../../../../models/gedungModel";
 
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 // GET /api/gedung/[id]
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export async function GET(_req: Request, context: RouteContext) {
+  const id = Number(context.params.id);
   const gedung = await getGedungById(id);
 
   if (!gedung) {
@@ -19,8 +25,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 // PUT /api/gedung/[id]
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export async function PUT(req: Request, context: RouteContext) {
+  const id = Number(context.params.id);
   const data = await req.json();
 
   await updateGedung(id, data);
@@ -28,8 +34,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE /api/gedung/[id]
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export async function DELETE(_req: Request, context: RouteContext) {
+  const id = Number(context.params.id);
 
   await deleteGedung(id);
   return NextResponse.json({ message: "Gedung berhasil dihapus" });
