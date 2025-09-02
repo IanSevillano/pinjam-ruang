@@ -6,11 +6,8 @@ import {
   deleteGedung,
 } from "../../../../models/gedungModel";
 
-interface Params {
-  params: { id: string };
-}
-
-export async function GET(request: Request, { params }: Params) {
+// GET /api/gedung/[id]
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const id = Number(params.id);
   const gedung = await getGedungById(id);
 
@@ -21,21 +18,22 @@ export async function GET(request: Request, { params }: Params) {
   return NextResponse.json(gedung);
 }
 
-export async function PUT(request: Request, { params }: Params) {
+// PUT /api/gedung/[id]
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const id = Number(params.id);
-  const data = await request.json();
+  const data = await req.json();
 
   await updateGedung(id, data);
   return NextResponse.json({ message: "Gedung berhasil diupdate" });
 }
 
-export async function DELETE(request: Request, { params }: Params) {
+// DELETE /api/gedung/[id]
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const id = Number(params.id);
 
   await deleteGedung(id);
   return NextResponse.json({ message: "Gedung berhasil dihapus" });
 }
-
 
 // // app/api/gedung/[id]/route.ts
 // import { NextResponse } from "next/server";
