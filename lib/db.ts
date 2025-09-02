@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // // lib/db.ts
 // import mysql from 'mysql2/promise';
 
@@ -10,6 +11,8 @@
 
 // export default db;
 
+=======
+>>>>>>> 1b80120d83f0e921abe4ad88e0a4137264d94c5c
 import mysql from 'mysql2/promise';
 
 const db = mysql.createPool({
