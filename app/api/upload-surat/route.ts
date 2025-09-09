@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Validasi ukuran file (max 5MB)
     if (file.size > 4 * 1024 * 1024) {
       return NextResponse.json(
-        { message: 'Ukuran file maksimal 5MB' },
+        { message: 'Ukuran file maksimal 4MB' },
         { status: 400 }
       );
     }
