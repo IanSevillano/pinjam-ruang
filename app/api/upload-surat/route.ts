@@ -4,18 +4,23 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const formData = await request.formData();
-    const file = formData.get('surat_peminjaman') as File | null;
-    const existingFileUrl = formData.get('existing_file') as string | null;
+    // Gunakan pengecekan tipe yang lebih eksplisit untuk memastikan file ada
+    const file = formData.get('surat_peminjaman');
 
-    if (!file) {
+    // Tambahkan validasi tipe di sini
+    if (!(file instanceof File)) {
       return NextResponse.json(
-        { message: 'Tidak ada file yang diunggah.' },
+        { message: 'Request tidak berisi file yang valid.' },
         { status: 400 }
       );
     }
+    
+    // Konversikan file ke bentuk Blob untuk pengunggahan
+    const fileBlob = file as Blob;
+    const existingFileUrl = formData.get('existing_file') as string | null;
 
     // Validasi tipe file (hanya PDF)
-    if (file.type !== 'application/pdf') {
+    if (fileBlob.type !== 'application/pdf') {
       return NextResponse.json(
         { message: 'Hanya file PDF yang diizinkan.' },
         { status: 400 }
@@ -24,7 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     // Validasi ukuran file (maksimal 4MB untuk menghindari batas payload Vercel)
     const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
-    if (file.size > MAX_FILE_SIZE) {
+    if (fileBlob.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { message: 'Ukuran file maksimal 4MB.' },
         { status: 400 }
@@ -36,17 +41,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       try {
         await del(existingFileUrl);
       } catch (delError) {
-        // Gunakan console.error untuk error yang lebih serius
         console.error('Gagal menghapus file lama:', delError);
-        // Lanjutkan proses upload meskipun gagal menghapus
       }
     }
 
     // Generate nama file unik
-    const uniqueFilename = `surat-${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    const uniqueFilename = `surat-${Date.now()}-${(file as File).name.replace(/\s+/g, '-')}`;
 
     // Unggah file baru ke Vercel Blob
-    const blob = await put(uniqueFilename, file, {
+    const blob = await put(uniqueFilename, fileBlob, {
       access: 'public',
     });
 
